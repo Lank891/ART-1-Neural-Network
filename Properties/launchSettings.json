@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "ART-1": {
+      "commandName": "Project",
+      "commandLineArgs": "0,7 ./learning_input.txt ./testing_input.txt ./output.txt"
+    }
+  }
+}
