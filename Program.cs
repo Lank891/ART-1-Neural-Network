@@ -8,13 +8,9 @@ const string helpMessage =
     "3. Path to testing input file - each row is one input in format 0 1 1 0 1, lenghts must be the same.\n" +
     "4. Path to clustering output.\n";
 
-/// <summary>
-/// Parses input file and returns parsed inputs or throws an exception if file does not exists or format is invalid
-/// </summary>
-static List<List<int>> ReadInputFile(string path, out int numberOfInputs, out int numberOfAttributes)
+static List<List<int>> ReadTxtFile(string path)
 {
-    List<List<int>> inputs = 
-        File.ReadAllLines(path)                             // Reads all lines
+    return File.ReadAllLines(path)                             // Reads all lines
         .Select(str => str.Trim())             // Trims the lines
         .Select(str =>
             Regex.Split(str, @"\s+")            // Splits each line by whitespace
@@ -23,10 +19,32 @@ static List<List<int>> ReadInputFile(string path, out int numberOfInputs, out in
             .ToList()                                       // Returns list (of ints) for each line in the file
         )
         .ToList();
+}
 
+static List<List<int>> ReadCsvFile(string path)
+{
+    //System.Text.Encoding encoding = System.Text.Encoding.UTF8;
+    return File.ReadLines(path)                             // Reads all lines
+        //.Select(str => str.Trim())             // Trims the lines
+        .Select(str => 
+            Regex.Split(str, @",+")
+            .Skip(1)// Splits each line by whitespace
+            .Where(s => s != string.Empty)    // Removes empty entries after splitting
+            .Select(s => Int32.Parse(s)<128 ? 0 : 1)       // Parses each entry in the line to an int
+            .ToList()      // Returns list (of ints) for each line in the file
+        )
+        .ToList();
+}
+
+/// <summary>
+/// Parses input file and returns parsed inputs or throws an exception if file does not exists or format is invalid
+/// </summary>
+static List<List<int>> ReadInputFile(string path, out int numberOfInputs, out int numberOfAttributes)
+{
+    List<List<int>> inputs = path.EndsWith("csv")?ReadCsvFile(path):ReadTxtFile(path);
     numberOfInputs = inputs.Count;
 
-    // Just assume there is at leas one input, otherwise it will just throw an exception as written in summary
+    // Just assume there is at least one input, otherwise it will just throw an exception as written in summary
     numberOfAttributes = inputs[0].Count;
 
     // Check all the inputs
@@ -103,10 +121,11 @@ if(learningnumberOfAttributes != testingnumberOfAttributes)
 }
 
 // Checking if output can be saved
-FileStream outputFile;
+FileStream outputFile; 
 try
 {
-    outputFile = File.OpenWrite(args[3]);
+    outputFile = new FileStream(args[3], FileMode.Create, FileAccess.Write);
+//File.OpenWrite();
 }
 catch (Exception ex)
 {
@@ -135,15 +154,16 @@ Console.WriteLine($"Predicting finished.");
 
 Console.WriteLine("Writing output...");
 
-using(var sreamWriter = new StreamWriter(outputFile))
+using(var streamWriter = new StreamWriter(outputFile))
 {
     for (int i = 0; i < testingNumberOfInputs; i++)
     {
         string outputLine = "";
+        outputLine += $"{resultClusters[i]}";
         foreach (var n in testingInputs[i])
-            outputLine += $"{n} ";
-        outputLine += $"- {resultClusters[i]}";
-        sreamWriter.WriteLine(outputLine);
+            outputLine += $",{n}";
+        streamWriter.WriteLine(outputLine);
+        streamWriter.Flush();
     }
 }
 
