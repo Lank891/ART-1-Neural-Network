@@ -72,7 +72,7 @@ namespace ART_1
                 {
                     double sSum = MultiplyVectors(x, t[matchIndex]);
                     
-                    if(sSum / xSum > vigilanceParam) // We match this input with given output
+                    if(sSum / xSum >= vigilanceParam) // We match this input with given output
                     {
                         matched = true;
                         for(int i = 0; i < x.Count; i++)
